@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+php generate.php $1 $2
