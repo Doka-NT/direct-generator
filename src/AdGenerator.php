@@ -49,10 +49,13 @@ class AdGenerator
 					$text = $this->replaceKeys($text, $keyword);
 
 					$str = sprintf(
-						"%s\t\t%s\t\t%s\n",
+						"%s%s%s%s%s%s",
 						$keyword,
+						$this->cellDelimiter,
 						$title,
-						$text
+						$this->cellDelimiter,
+						$text,
+						$this->rowDelimiter
 					);
 
 					$this->output->fwrite($str);
@@ -85,6 +88,8 @@ class AdGenerator
 	 */
 	private function replaceKeys(string $input, string $replacement): string
 	{
+		$replacement = preg_replace('/\+|-/', '', $replacement);
+
 		$result = str_replace('[Key]', mb_convert_case($replacement, MB_CASE_TITLE, 'UTF-8'), $input);
 		$result = str_replace('[key]', mb_convert_case($replacement, MB_CASE_LOWER, 'UTF-8'), $result);
 

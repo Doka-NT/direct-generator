@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-php generate.php $1 $1.csv
+DIR=$(dirname $(realpath $0))
+
+php ${DIR}/generate.php $1 $1.csv
