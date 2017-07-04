@@ -12,8 +12,10 @@ $output = $input->getOutput();
 $parser = new DgParser($file);
 $generator = new AdGenerator($parser, $output);
 
+$generator->setSkipLong($input->hasSkipLong());
+
 if (pathinfo($output, PATHINFO_EXTENSION) === 'csv') {
-	$generator->setCellDelimiter(",");
+    $generator->setCellDelimiter(",");
 }
 
 $generator->generate();

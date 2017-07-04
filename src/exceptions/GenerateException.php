@@ -6,17 +6,17 @@ use Throwable;
 
 class GenerateException extends \Exception
 {
-	protected $text;
+    protected $text;
 
-	public function __construct($message = "", $code = 0, Throwable $previous = null)
-	{
-		$this->text = $message;
+    public function __construct($message = "", $code = 0, Throwable $previous = null)
+    {
+        $this->text = $message;
 
-		parent::__construct($message, $code, $previous);
-	}
+        parent::__construct($message, $code, $previous);
+    }
 
-	public function getText(): string
-	{
-		return $this->text;
-	}
+    public function getText(): string
+    {
+        return $this->text;
+    }
 }

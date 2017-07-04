@@ -1,5 +1,6 @@
 .idea/
 vendor/
-*.csv
 composer.lock
 composer.phar
+var/
+!var/.gitkeep

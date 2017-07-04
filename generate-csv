@@ -2,4 +2,4 @@
 
 DIR=$(dirname $(realpath $0))
 
-php ${DIR}/generate.php $1 $1.csv
+php ${DIR}/generate.php $1 $1.csv $*
