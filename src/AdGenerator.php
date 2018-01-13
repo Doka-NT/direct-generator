@@ -59,15 +59,7 @@ class AdGenerator
     public function generate()
     {
         foreach ($this->parser->getKeywords() as $keyword) {
-            foreach ($this->parser->getTitles() as $title) {
-                foreach ($this->parser->getTexts() as $text) {
-                    try {
-                        $this->writeToOutput($this->renderString($keyword, $title, $text));
-                    } catch (GenerateException $e) {
-                        echo $this->renderException($e);
-                    }
-                }
-            }
+            $this->processTitles($keyword);
         }
 
         if ($this->wasError) {
@@ -171,6 +163,30 @@ class AdGenerator
         $this->output->fwrite($this->outputBuffer);
     }
 
+    /**
+     * @param string $keyword
+     */
+    protected function processTitles(string $keyword)
+    {
+        foreach ($this->parser->getTitles() as $title) {
+            $this->processTexts($keyword, $title);
+        }
+    }
+
+    /**
+     * @param string $keyword
+     * @param string $title
+     */
+    protected function processTexts(string $keyword, string $title)
+    {
+        foreach ($this->parser->getTexts() as $text) {
+            try {
+                $this->writeToOutput($this->renderString($keyword, $title, $text));
+            } catch (GenerateException $e) {
+                echo $this->renderException($e);
+            }
+        }
+    }
 
     /**
      * Замена ключей в строке
@@ -181,11 +197,12 @@ class AdGenerator
      */
     private function replaceKeys(string $input, string $replacement): string
     {
+        $replacement = (string) preg_replace('/\s\+[а-яА-Я]+|\s\-[а-яА-Я]+/u', '', $replacement);
 
-        $replacement = preg_replace('/\s\+[а-яА-Я]+|\s\-[а-яА-Я]+/u', '', $replacement);
-
-        $result = str_replace('[Key]', mb_convert_case($replacement, MB_CASE_TITLE, 'UTF-8'), $input);
-        $result = str_replace('[key]', mb_convert_case($replacement, MB_CASE_LOWER, 'UTF-8'), $result);
+        $result = str_replace(array('[Key]', '[key]'), [
+            mb_convert_case($replacement, MB_CASE_TITLE, 'UTF-8'),
+            mb_convert_case($replacement, MB_CASE_LOWER, 'UTF-8')
+        ], $input);
 
         return $result;
     }
