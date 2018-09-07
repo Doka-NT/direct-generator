@@ -1,6 +1,6 @@
 <?php
 
-namespace skobka\dg\exceptions;
+namespace skobka\dg\Exceptions;
 
 use Throwable;
 

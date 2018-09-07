@@ -5,3 +5,4 @@ composer.lock
 composer.phar
 var/
 !var/.gitkeep
+.php_cs.cache
