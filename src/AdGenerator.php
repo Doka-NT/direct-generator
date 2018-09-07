@@ -2,9 +2,9 @@
 
 namespace skobka\dg;
 
-use skobka\dg\exceptions\GenerateException;
-use skobka\dg\exceptions\TextTooLongException;
-use skobka\dg\exceptions\TitleTooLongException;
+use skobka\dg\Exceptions\GenerateException;
+use skobka\dg\Exceptions\TextTooLongException;
+use skobka\dg\Exceptions\TitleTooLongException;
 
 class AdGenerator
 {

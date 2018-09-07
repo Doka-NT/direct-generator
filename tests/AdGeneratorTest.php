@@ -4,18 +4,22 @@ namespace tests\skobka\dg;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit_Framework_MockObject_MockObject;
+use ReflectionProperty;
 use skobka\dg\AdGenerator;
-use skobka\dg\exceptions\GenerateException;
-use skobka\dg\exceptions\TextTooLongException;
-use skobka\dg\exceptions\TitleTooLongException;
+use skobka\dg\Exceptions\GenerateException;
+use skobka\dg\Exceptions\TextTooLongException;
+use skobka\dg\Exceptions\TitleTooLongException;
 use skobka\dg\Parser;
 
 /**
- * Class AdGeneratorTest
- * @package tests\skobka\dg
+ * @coversDefaultClass \skobka\dg\AdGenerator
  */
 class AdGeneratorTest extends TestCase
 {
+    /**
+     * @throws TextTooLongException
+     * @throws TitleTooLongException
+     */
     public function testRenderString()
     {
         $parser = $this->createParser();
@@ -78,6 +82,9 @@ class AdGeneratorTest extends TestCase
         $generator->generate();
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function testGenerateException()
     {
         $parser = $this->createParser();
@@ -128,6 +135,9 @@ class AdGeneratorTest extends TestCase
         $generator->generate();
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function testRenderException()
     {
         $parser = $this->createParser();
@@ -150,7 +160,24 @@ class AdGeneratorTest extends TestCase
     }
 
     /**
-     * @return PHPUnit_Framework_MockObject_MockObject
+     * @return void
+     * @throws \ReflectionException
+     */
+    public function testSetRowDelimiter(): void
+    {
+        $parser = $this->createParser();
+        $generator = $this->createAdGenerator($parser);
+
+        $generator->setRowDelimiter('foobar');
+
+        $rowDelimiterProperty = new ReflectionProperty(AdGenerator::class, 'rowDelimiter');
+        $rowDelimiterProperty->setAccessible(true);
+
+        $this->assertSame('foobar', $rowDelimiterProperty->getValue($generator));
+    }
+
+    /**
+     * @return PHPUnit_Framework_MockObject_MockObject|Parser
      */
     private function createParser(): PHPUnit_Framework_MockObject_MockObject
     {
