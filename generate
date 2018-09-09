@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-DIR=$(dirname $(realpath $0))
-
-php ${DIR}/generate.php $*
