@@ -5,9 +5,10 @@ namespace skobka\dg;
 interface Parser
 {
     /**
+     * @param string $file
      * @return void
      */
-    public function parse();
+    public function parse(string $file);
 
     /**
      * @return string[]

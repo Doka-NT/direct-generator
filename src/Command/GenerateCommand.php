@@ -49,7 +49,7 @@ class GenerateCommand extends Command
     {
         $outputFile = $input->getArgument(self::ARG_OUTPUT);
 
-        $parser = new DgParser($input->getArgument(self::ARG_FILE));
+        $parser = new DgParser();
         $generator = new AdGenerator($parser, $outputFile);
 
         $generator->setSkipLong($input->getOption(self::OPT_SKIP_LONG));
@@ -58,7 +58,7 @@ class GenerateCommand extends Command
             $generator->setCellDelimiter(",");
         }
 
-        $generator->generate();
+        $generator->generate($input->getArgument(self::ARG_FILE));
 
         return self::CODE_OK;
     }

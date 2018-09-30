@@ -12,8 +12,8 @@ class DgParserTest extends TestCase
 {
     public function testGetTitles(): void
     {
-        $parser = $this->getParser();
-        $parser->parse();
+        $parser = new DgParser();
+        $parser->parse($this->getFile());
 
         $this->assertSame([
             'Заголовок [key]',
@@ -23,8 +23,8 @@ class DgParserTest extends TestCase
 
     public function testGetTexts(): void
     {
-        $parser = $this->getParser();
-        $parser->parse();
+        $parser = new DgParser();
+        $parser->parse($this->getFile());
 
         $this->assertSame([
             'Текст [key]',
@@ -34,8 +34,8 @@ class DgParserTest extends TestCase
 
     public function testGetKeywords(): void
     {
-        $parser = $this->getParser();
-        $parser->parse();
+        $parser = new DgParser();
+        $parser->parse($this->getFile());
 
         $this->assertSame([
             'foo',
@@ -44,16 +44,14 @@ class DgParserTest extends TestCase
     }
 
     /**
-     * @return DgParser
+     * @return string
      */
-    private function getParser(): DgParser
+    private function getFile(): string
     {
         $file = \tempnam(\sys_get_temp_dir(), 'dg');
         \file_put_contents($file, $this->getFileContent());
 
-        $parser = new DgParser($file);
-
-        return $parser;
+        return $file;
     }
 
     /**

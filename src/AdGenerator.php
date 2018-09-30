@@ -40,7 +40,7 @@ class AdGenerator
     private $skipLong = false;
 
     /**
-     * AdGenerator constructor.
+     * Генератор объявлений
      *
      * @param Parser $parser
      * @param string $output
@@ -49,15 +49,17 @@ class AdGenerator
     {
         $this->parser = $parser;
         $this->output = new \SplFileObject($output, 'w');
-
-        $this->parser->parse();
     }
 
     /**
      * Генерирует наборы объявлений
+     *
+     * @param string $file
      */
-    public function generate()
+    public function generate(string $file): void
     {
+        $this->parser->parse($file);
+
         foreach ($this->parser->getKeywords() as $keyword) {
             $this->processTitles($keyword);
         }
@@ -67,6 +69,16 @@ class AdGenerator
         }
 
         $this->flushOutput();
+    }
+
+    /**
+     * Разрешить пропуск длинных заголовков
+     * и текстов без выбрасывания исключений
+     * @param bool $skip
+     */
+    public function setSkipLong(bool $skip)
+    {
+        $this->skipLong = $skip;
     }
 
     /**
@@ -95,7 +107,7 @@ class AdGenerator
      * @throws TextTooLongException
      * @throws TitleTooLongException
      */
-    public function renderString(string $keyword, string $title, string $text): string
+    private function renderString(string $keyword, string $title, string $text): string
     {
         $title = $this->replaceKeys($title, $keyword);
         $text = $this->replaceKeys($text, $keyword);
@@ -120,21 +132,11 @@ class AdGenerator
     }
 
     /**
-     * Разрешить пропуск длинных заголовков
-     * и текстов без выбрасывания исключений
-     * @param bool $skip
-     */
-    public function setSkipLong(bool $skip)
-    {
-        $this->skipLong = $skip;
-    }
-
-    /**
      * Формирование строки с ошибкой
      * @param GenerateException $e
      * @return string
      */
-    protected function renderException(GenerateException $e)
+    private function renderException(GenerateException $e)
     {
         $this->wasError = true;
 
@@ -150,7 +152,7 @@ class AdGenerator
     /**
      * @param string $string
      */
-    protected function writeToOutput(string $string)
+    private function writeToOutput(string $string)
     {
         $this->outputBuffer .= $string;
     }
@@ -158,7 +160,7 @@ class AdGenerator
     /**
      *
      */
-    protected function flushOutput()
+    private function flushOutput()
     {
         $this->output->fwrite($this->outputBuffer);
     }
@@ -166,7 +168,7 @@ class AdGenerator
     /**
      * @param string $keyword
      */
-    protected function processTitles(string $keyword)
+    private function processTitles(string $keyword)
     {
         foreach ($this->parser->getTitles() as $title) {
             $this->processTexts($keyword, $title);
@@ -177,7 +179,7 @@ class AdGenerator
      * @param string $keyword
      * @param string $title
      */
-    protected function processTexts(string $keyword, string $title)
+    private function processTexts(string $keyword, string $title)
     {
         foreach ($this->parser->getTexts() as $text) {
             try {

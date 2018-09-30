@@ -2,6 +2,8 @@
 
 namespace skobka\dg;
 
+use SplFileObject;
+
 /**
  * Парсер .dg файлов
  * .dg файл содержит следующую структуру
@@ -51,16 +53,14 @@ class DgParser implements Parser
      */
     private $flag;
 
-    public function __construct(string $file)
-    {
-        $this->file = new \SplFileObject($file);
-    }
-
     /**
+     * @param string $file
      * @return void
      */
-    public function parse()
+    public function parse(string $file)
     {
+        $this->setFile($file);
+
         $markers = $this->getMarkers();
         $flags = $this->getFlags();
 
@@ -138,5 +138,13 @@ class DgParser implements Parser
         } elseif ($flag === self::FLAG_TEXTS) {
             $this->texts[] = $text;
         }
+    }
+
+    /**
+     * @param string $file
+     */
+    private function setFile(string $file): void
+    {
+        $this->file = new SplFileObject($file);
     }
 }
