@@ -28,7 +28,6 @@ class GenerateCommandTest extends TestCase
 
         $outputArgument = $command->getDefinition()->getArgument('output');
         $this->assertSame('Файл для сохранения результата', $outputArgument->getDescription());
-        $this->assertSame('php://stdout', $outputArgument->getDefault());
         $this->assertFalse($outputArgument->isRequired());
 
         $skipLongOption = $command->getDefinition()->getOption('skip-long');
@@ -80,7 +79,22 @@ Title 1 [key]
 
         $this->assertSame(0, $exitCode);
         $this->assertSame(
-            "foobar\t\tTitle 1 foobar\t\tFoobar text 1\n",
+            implode("\t\t", [
+                '-',
+                'Текстово-графическое',
+                '-',
+                '',
+                'foobar 1',
+                '',
+                '-',
+                '',
+                'foobar',
+                '', //продуктивность
+                '',
+                'Title 1 foobar',
+                '',
+                'Foobar text 1',
+            ]) . PHP_EOL,
             \file_get_contents($outputFile)
         );
     }
@@ -109,7 +123,7 @@ Title 1 [key]
 
         $this->assertSame(0, $exitCode);
         $this->assertSame(
-            "foobar,Title 1 foobar,Foobar text 1\n",
+            '-,Текстово-графическое,-,,foobar 1,,-,,foobar,,,Title 1 foobar,,Foobar text 1' . PHP_EOL,
             \file_get_contents($outputFile)
         );
     }
@@ -154,7 +168,7 @@ Title 1 [key]
      */
     private function createTempFile($content, string $extension = '')
     {
-        $name = \sys_get_temp_dir() . '/' . \uniqid('dg-') . ($extension ? '.' . $extension : '');
+        $name = \sys_get_temp_dir() . '/' . \uniqid('dg-', false) . ($extension ? '.' . $extension : '');
         \file_put_contents($name, $content);
 
         return $name;

@@ -28,7 +28,7 @@ class GenerateCommand extends Command
         $this->setDescription('Генерация объявлений на основе .dg файла');
 
         $this->addArgument(self::ARG_FILE, InputArgument::REQUIRED, 'Файл .dg для генерации объявлений');
-        $this->addArgument(self::ARG_OUTPUT, InputArgument::OPTIONAL, 'Файл для сохранения результата', 'php://stdout');
+        $this->addArgument(self::ARG_OUTPUT, InputArgument::OPTIONAL, 'Файл для сохранения результата');
 
         $this->addOption(
             self::OPT_SKIP_LONG,
@@ -47,7 +47,12 @@ class GenerateCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
+        $inputFile = $input->getArgument(self::ARG_FILE);
         $outputFile = $input->getArgument(self::ARG_OUTPUT);
+
+        if (null === $outputFile) {
+            $outputFile = \dirname($inputFile) . '/' . \basename($inputFile) . '.csv';
+        }
 
         $parser = new DgParser();
         $generator = new AdGenerator($parser, $outputFile);
@@ -58,7 +63,7 @@ class GenerateCommand extends Command
             $generator->setCellDelimiter(",");
         }
 
-        $generator->generate($input->getArgument(self::ARG_FILE));
+        $generator->generate($inputFile);
 
         return self::CODE_OK;
     }

@@ -16,15 +16,16 @@ class AdGeneratorTest extends TestCase
      */
     public function testGenerate(): void
     {
-        $expected = 'bar		title bar		text bar
-bar		title bar		bar text
-bar		bar title		text bar
-bar		bar title		bar text
-baz		title baz		text baz
-baz		title baz		baz text
-baz		baz title		text baz
-baz		baz title		baz text
-';
+        $expected = implode([
+                $this->createRow('bar 1', 'bar', 'title bar', 'text bar'),
+                $this->createRow('bar 1', 'bar', 'title bar', 'bar text'),
+                $this->createRow('bar 1', 'bar', 'bar title', 'text bar'),
+                $this->createRow('bar 1', 'bar', 'bar title', 'bar text'),
+                $this->createRow('baz 1', 'baz', 'title baz', 'text baz'),
+                $this->createRow('baz 1', 'baz', 'title baz', 'baz text'),
+                $this->createRow('baz 1', 'baz', 'baz title', 'text baz'),
+                $this->createRow('baz 1', 'baz', 'baz title', 'baz text'),
+            ], \PHP_EOL) . \PHP_EOL;
 
         /* @var $parser DgParser|\PHPUnit_Framework_MockObject_MockObject */
         $parser = $this
@@ -50,5 +51,36 @@ baz		baz title		baz text
         $generator->generate('foo');
 
         $this->assertSame($expected, \file_get_contents($output));
+    }
+
+    /**
+     * @param string $group
+     * @param string $keyword
+     * @param string $title
+     * @param string $text
+     * @return string
+     */
+    private function createRow(
+        string $group,
+        string $keyword,
+        string $title,
+        string $text
+    ): string {
+        return implode("\t\t", [
+            '-',
+            'Текстово-графическое',
+            '-',
+            '',
+            $group,
+            '',
+            '-',
+            '',
+            $keyword,
+            '',
+            '',
+            $title,
+            '',
+            $text,
+        ]);
     }
 }

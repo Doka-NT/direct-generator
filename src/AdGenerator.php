@@ -8,7 +8,11 @@ use skobka\dg\Exceptions\TitleTooLongException;
 
 class AdGenerator
 {
-    const KEYWORD_MARKER = '[key]';
+    private const KEYWORD_MARKER = '[key]';
+    private const KEYWORD_MARKER_CAPITALIZE = '[Key]';
+    private const MAX_ADS_IN_GROUP = 50;
+    private const MAX_TITLE_LENGTH = 33;
+    private const MAX_TEXT_LENGTH = 75;
 
     /**
      * @var Parser
@@ -38,6 +42,14 @@ class AdGenerator
      * @var bool
      */
     private $skipLong = false;
+    /**
+     * @var int
+     */
+    private $groupNum = 1;
+    /**
+     * @var int
+     */
+    private $adCounter = 0;
 
     /**
      * Генератор объявлений
@@ -109,26 +121,35 @@ class AdGenerator
      */
     private function renderString(string $keyword, string $title, string $text): string
     {
+        $this->updateAdCounter();
+
         $title = $this->replaceKeys($title, $keyword);
         $text = $this->replaceKeys($text, $keyword);
 
-        if (mb_strlen($title) > 33 && !$this->skipLong) {
+        if (!$this->skipLong && mb_strlen($title) > self::MAX_TITLE_LENGTH) {
             throw new TitleTooLongException($title);
         }
 
-        if (mb_strlen($text) > 75 && !$this->skipLong) {
+        if (mb_strlen($text) > self::MAX_TEXT_LENGTH && !$this->skipLong) {
             throw new TextTooLongException($text);
         }
 
-        return sprintf(
-            "%s%s%s%s%s%s",
-            $keyword,
-            $this->cellDelimiter,
-            $title,
-            $this->cellDelimiter,
-            $text,
-            $this->rowDelimiter
-        );
+        return implode($this->cellDelimiter, [
+                '-',
+                'Текстово-графическое',
+                '-',
+                '',
+                "$keyword {$this->groupNum}",
+                '',
+                '-',
+                '',
+                $keyword,
+                '', //продуктивность
+                '',
+                $title,
+                '',
+                $text,
+            ]) . $this->rowDelimiter;
     }
 
     /**
@@ -201,11 +222,22 @@ class AdGenerator
     {
         $replacement = (string) preg_replace('/\s\+[а-яА-Я]+|\s\-[а-яА-Я]+/u', '', $replacement);
 
-        $result = str_replace(array('[Key]', '[key]'), [
+        $result = str_replace([self::KEYWORD_MARKER_CAPITALIZE, self::KEYWORD_MARKER], [
             mb_convert_case($replacement, MB_CASE_TITLE, 'UTF-8'),
             mb_convert_case($replacement, MB_CASE_LOWER, 'UTF-8')
         ], $input);
 
         return $result;
+    }
+
+    /**
+     * Обновление счетчика объявлений
+     */
+    private function updateAdCounter(): void
+    {
+        if ($this->adCounter && $this->adCounter % self::MAX_ADS_IN_GROUP === 0) {
+            $this->groupNum++;
+        }
+        $this->adCounter++;
     }
 }
