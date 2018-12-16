@@ -60,6 +60,8 @@ class DgParserTest extends TestCase
     private function getFileContent(): string
     {
         return <<<EOT
+not used        
+        
 [Ключи]
 foo
 bar
