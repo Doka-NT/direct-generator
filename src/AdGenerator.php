@@ -154,17 +154,18 @@ class AdGenerator
 
     /**
      * Формирование строки с ошибкой
-     * @param GenerateException $e
+     *
+     * @param GenerateException $exception
      * @return string
      */
-    private function renderException(GenerateException $e)
+    private function renderException(GenerateException $exception)
     {
         $this->wasError = true;
 
         $message = sprintf(
             "\033[0;31m%s [%d]\033[0m\n",
-            '[ERROR] ' . $e->getMessage(),
-            mb_strlen($e->getText())
+            '[ERROR] ' . $exception->getMessage(),
+            mb_strlen($exception->getText())
         );
 
         return $message;
