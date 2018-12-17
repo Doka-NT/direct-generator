@@ -4,6 +4,7 @@ namespace skobka\dg\Command;
 
 use skobka\dg\AdGenerator;
 use skobka\dg\DgParser;
+use skobka\dg\View;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -55,12 +56,13 @@ class GenerateCommand extends Command
         }
 
         $parser = new DgParser();
-        $generator = new AdGenerator($parser, $outputFile);
+        $view = new View();
+        $generator = new AdGenerator($parser, $view, $outputFile);
 
-        $generator->setSkipLong($input->getOption(self::OPT_SKIP_LONG));
+        $view->setSkipLong($input->getOption(self::OPT_SKIP_LONG));
 
         if (pathinfo($outputFile, PATHINFO_EXTENSION) === 'csv') {
-            $generator->setCellDelimiter(",");
+            $view->setCellDelimiter(',');
         }
 
         $generator->generate($inputFile);

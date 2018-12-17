@@ -7,6 +7,8 @@ use ReflectionProperty;
 use skobka\dg\AdGenerator;
 use skobka\dg\DgParser;
 use skobka\dg\Exceptions\GenerateException;
+use skobka\dg\Parser;
+use skobka\dg\View;
 
 /**
  * @coversDefaultClass \skobka\dg\AdGenerator
@@ -41,6 +43,8 @@ class AdGeneratorTest extends TestCase
             ])
             ->getMock();
 
+        $view = new View();
+
         $parser->expects($this->once())->method('parse')->with('foo');
         $parser->method('getKeywords')->willReturn(['bar', 'baz']);
         $parser->method('getTitles')->willReturn(['title [key]', '[key] title']);
@@ -48,7 +52,7 @@ class AdGeneratorTest extends TestCase
 
         $output = \tempnam(\sys_get_temp_dir(), 'ad-generator');
 
-        $generator = new AdGenerator($parser, $output);
+        $generator = new AdGenerator($parser, $view, $output);
 
         $generator->generate('foo');
 
@@ -87,71 +91,6 @@ class AdGeneratorTest extends TestCase
     }
 
     /**
-     * @dataProvider boolDataProvider
-     * @param bool $skipLong
-     * @return void
-     * @throws \ReflectionException
-     */
-    public function testSkipLong(bool $skipLong)
-    {
-        $parser = new DgParser();
-        $generator = new AdGenerator($parser, 'foo');
-        $generator->setSkipLong($skipLong);
-
-        $skipLongProperty = new ReflectionProperty(AdGenerator::class, 'skipLong');
-        $skipLongProperty->setAccessible(true);
-
-        $this->assertSame($skipLong, $skipLongProperty->getValue($generator));
-    }
-
-    /**
-     * @return array
-     */
-    public function boolDataProvider(): array
-    {
-        return [
-            [true],
-            [false],
-        ];
-    }
-
-    /**
-     * @return void
-     * @throws \ReflectionException
-     */
-    public function testSetCellDelimiter()
-    {
-        $value = \uniqid('foo', false);
-        $parser = new DgParser();
-        $generator = new AdGenerator($parser, 'foo');
-
-        $generator->setCellDelimiter($value);
-
-        $property = new ReflectionProperty(AdGenerator::class, 'cellDelimiter');
-        $property->setAccessible(true);
-
-        $this->assertSame($value, $property->getValue($generator));
-    }
-
-    /**
-     * @return void
-     * @throws \ReflectionException
-     */
-    public function testSetRowDelimiter()
-    {
-        $value = \uniqid('foo', false);
-        $parser = new DgParser();
-        $generator = new AdGenerator($parser, 'foo');
-
-        $generator->setRowDelimiter($value);
-
-        $property = new ReflectionProperty(AdGenerator::class, 'rowDelimiter');
-        $property->setAccessible(true);
-
-        $this->assertSame($value, $property->getValue($generator));
-    }
-
-    /**
      * @return void
      * @throws \ReflectionException
      */
@@ -162,7 +101,8 @@ class AdGeneratorTest extends TestCase
         $count = \mb_strlen($message);
 
         $parser = new DgParser();
-        $generator = new AdGenerator($parser, 'foo');
+        $view = new View();
+        $generator = new AdGenerator($parser, $view, 'foo');
 
         $reflection = new \ReflectionMethod(AdGenerator::class, 'renderException');
         $reflection->setAccessible(true);
@@ -175,5 +115,37 @@ class AdGeneratorTest extends TestCase
         $this->assertTrue($property->getValue($generator));
         $this->assertContains($message, $result);
         $this->assertContains("[$count]", $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testNoOutputOnError()
+    {
+        /* @var $parser Parser|\PHPUnit_Framework_MockObject_MockObject */
+        $parser = $this
+            ->getMockBuilder(Parser::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        /* @var $view View|\PHPUnit_Framework_MockObject_MockObject */
+        $view = $this
+            ->getMockBuilder(View::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $output = \tempnam(\sys_get_temp_dir(), 'adGenerator-test');
+        $generator = new AdGenerator($parser, $view, $output);
+
+        $parser->method('getKeywords')->willReturn(['foo', 'bar']);
+        $parser->method('getTitles')->willReturn(['foo', 'bar']);
+        $parser->method('getTexts')->willReturn(['foo', 'bar']);
+        $view->method('renderString')->willThrowException(new GenerateException());
+
+        \ob_start();
+        $generator->generate('not used');
+        \ob_get_clean();
+
+        $this->assertSame('', \file_get_contents($output));
     }
 }
