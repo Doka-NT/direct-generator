@@ -129,6 +129,37 @@ Title 1 [key]
     }
 
     /**
+     * @return void
+     * @throws \Exception
+     */
+    public function testOutputToDefaultFile()
+    {
+        $content = '
+[Ключи]
+foobar
+
+[Заголовки]
+Title 1 [key]
+
+[Тексты]
+[Key] text 1
+';
+
+        $inputFile = $this->createTempFile($content);
+        $input = $this->getInputMock($inputFile, null, true);
+        $output = $this->getOutputMock();
+
+        $command = new GenerateCommand();
+        $exitCode = $command->execute($input, $output);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(
+            '-,Текстово-графическое,-,,foobar 1,,-,,foobar,,,Title 1 foobar,,Foobar text 1' . PHP_EOL,
+            \file_get_contents($inputFile . '.csv')
+        );
+    }
+
+    /**
      * @covers ::execute()
      * @return void
      * @throws \Exception
@@ -180,7 +211,7 @@ Title 1 [key]
      * @param bool $skip
      * @return \PHPUnit_Framework_MockObject_MockObject|InputInterface
      */
-    private function getInputMock(string $inputFile, string $outputFile, bool $skip)
+    private function getInputMock(string $inputFile, $outputFile, bool $skip)
     {
         /* @var $input InputInterface|\PHPUnit_Framework_MockObject_MockObject */
         $input = $this
