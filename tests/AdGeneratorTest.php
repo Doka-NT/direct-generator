@@ -7,7 +7,7 @@ use ReflectionProperty;
 use skobka\dg\AdGenerator;
 use skobka\dg\DgParser;
 use skobka\dg\Exceptions\GenerateException;
-use skobka\dg\Parser;
+use skobka\dg\ParserInterface;
 use skobka\dg\View;
 
 /**
@@ -122,9 +122,9 @@ class AdGeneratorTest extends TestCase
      */
     public function testNoOutputOnError()
     {
-        /* @var $parser Parser|\PHPUnit_Framework_MockObject_MockObject */
+        /* @var $parser ParserInterface|\PHPUnit_Framework_MockObject_MockObject */
         $parser = $this
-            ->getMockBuilder(Parser::class)
+            ->getMockBuilder(ParserInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 

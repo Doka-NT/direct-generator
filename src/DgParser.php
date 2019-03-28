@@ -20,73 +20,94 @@ use SplFileObject;
  * Формат аналогичен секции Заголовков
  * </code>
  */
-class DgParser implements Parser
+class DgParser implements ParserInterface
 {
-    const FLAG_KEYWORDS = 1;
-    const FLAG_TITLES = 2;
-    const FLAG_TEXTS = 3;
-
-    const MARKER_KEYWORDS = '[Ключи]';
-    const MARKER_TITLES = '[Заголовки]';
-    const MARKER_TEXTS = '[Тексты]';
+    /**
+     * Флаг: Секция - ключевые слова
+     */
+    public const FLAG_KEYWORDS = 1;
+    /**
+     * Флаг: Секция - заголовки
+     */
+    public const FLAG_TITLES = 2;
+    /**
+     * Флаг: Секция - тексты
+     */
+    public const FLAG_TEXTS = 3;
 
     /**
+     * Маркер секции - ключевые слова
+     */
+    public const MARKER_KEYWORDS = '[Ключи]';
+    /**
+     * Маркер секции - заголовки
+     */
+    public const MARKER_TITLES = '[Заголовки]';
+    /**
+     * Макрер секции - тексты
+     */
+    public const MARKER_TEXTS = '[Тексты]';
+
+    /**
+     * Массив флагов для поиска
+     *
+     * @var int[]
+     */
+    private const FLAGS = [self::FLAG_KEYWORDS, self::FLAG_TITLES, self::FLAG_TEXTS];
+    /**
+     * Массив маркеров для поиска
+     */
+    private const MARKERS = [self::MARKER_KEYWORDS, self::MARKER_TITLES, self::MARKER_TEXTS];
+
+    /**
+     * Инстанс файла для парсинга
+     *
      * @var \SplFileObject
      */
     private $file;
-
     /**
+     * Спарсенные ключевые слова
+     *
      * @var string[]
      */
     private $keywords = [];
     /**
+     * Спарсенные заголовки
+     *
      * @var string[]
      */
     private $titles = [];
     /**
+     * Спарсенные тексты
+     *
      * @var string[]
      */
     private $texts = [];
-
     /**
+     * Флаг. Текущая секция
+     *
      * @var int
      */
-    private $flag;
+    private $flagCurrentSection = 0;
 
     /**
-     * @param string $file
-     * @return void
+     * @inheritdoc
      */
-    public function parse(string $file)
+    public function parse(string $file): void
     {
-        $this->setFile($file);
-
-        $markers = $this->getMarkers();
-        $flags = $this->getFlags();
+        $this->createFileInstance($file);
 
         while (!$this->file->eof()) {
-            $line = $this->file->fgets();
-            $text = trim($line);
-            if (!$text) {
-                continue;
-            }
-
-            $key = array_search($text, $markers);
-            if ($key !== false) {
-                $this->flag = $flags[$key];
-                continue;
-            }
-
-            if (!$this->flag) {
-                continue;
-            }
-
-            $this->addText($text, $this->flag);
+            $this->parseLine(
+                trim($this->file->fgets())
+            );
         }
+
+        $this->filterData();
     }
 
     /**
-     * @return string[]
+     * @inheritdoc
      */
     public function getKeywords(): array
     {
@@ -94,7 +115,7 @@ class DgParser implements Parser
     }
 
     /**
-     * @return string[]
+     * @inheritdoc
      */
     public function getTitles(): array
     {
@@ -102,7 +123,7 @@ class DgParser implements Parser
     }
 
     /**
-     * @return string[]
+     * @inheritdoc
      */
     public function getTexts(): array
     {
@@ -110,41 +131,73 @@ class DgParser implements Parser
     }
 
     /**
-     * @return array
+     * Добавить найденные текст в набор в зависимости от флага
+     *
+     * @param string $text спарсенный текст
+     * @param int $flag флаг типа текста
      */
-    private function getMarkers(): array
+    private function addText(string $text, int $flag): void
     {
-        return [self::MARKER_KEYWORDS, self::MARKER_TITLES, self::MARKER_TEXTS];
-    }
-
-    /**
-     * @return array
-     */
-    private function getFlags(): array
-    {
-        return [self::FLAG_KEYWORDS, self::FLAG_TITLES, self::FLAG_TEXTS];
-    }
-
-    /**
-     * @param string $text
-     * @param int $flag
-     */
-    private function addText(string $text, int $flag)
-    {
-        if ($flag === self::FLAG_KEYWORDS) {
+        if ($flag === static::FLAG_KEYWORDS) {
             $this->keywords[] = $text;
-        } elseif ($flag === self::FLAG_TITLES) {
+        } elseif ($flag === static::FLAG_TITLES) {
             $this->titles[] = $text;
-        } elseif ($flag === self::FLAG_TEXTS) {
+        } elseif ($flag === static::FLAG_TEXTS) {
             $this->texts[] = $text;
         }
     }
 
     /**
+     * Создание инстанса файла из его пути
+     *
      * @param string $file
      */
-    private function setFile(string $file): void
+    private function createFileInstance(string $file): void
     {
         $this->file = new SplFileObject($file);
+    }
+
+    /**
+     * Очистка спарсенных данных от пустых значений
+     */
+    private function filterData(): void
+    {
+        $this->keywords = array_filter($this->keywords);
+        $this->titles = array_filter($this->titles);
+        $this->texts = array_filter($this->texts);
+    }
+
+    /**
+     * Парсинг строки из исходного файла
+     *
+     * @param string $text строка текста из исходного файла
+     */
+    private function parseLine(string $text): void
+    {
+        if ($this->checkIsSection($text)) {
+            return;
+        }
+
+        $this->addText($text, $this->flagCurrentSection);
+    }
+
+    /**
+     * Проверка является ли $line ключевым словом определяющим секцию файлы
+     *
+     * @param string $line строка текста из исходного файла
+     *
+     * @return bool
+     */
+    private function checkIsSection(string $line): bool
+    {
+        $key = array_search($line, static::MARKERS, true);
+
+        if ($key === false) {
+            return false;
+        }
+
+        $this->flagCurrentSection = static::FLAGS[$key] ?? 0;
+
+        return true;
     }
 }
