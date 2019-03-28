@@ -20,46 +20,71 @@ use SplFileObject;
  * Формат аналогичен секции Заголовков
  * </code>
  */
-class DgParser implements Parser
+class DgParserInterface implements ParserInterface
 {
-    const FLAG_KEYWORDS = 1;
-    const FLAG_TITLES = 2;
-    const FLAG_TEXTS = 3;
-
-    const MARKER_KEYWORDS = '[Ключи]';
-    const MARKER_TITLES = '[Заголовки]';
-    const MARKER_TEXTS = '[Тексты]';
+    /**
+     * Флаг: Секция - ключевые слова
+     */
+    public const FLAG_KEYWORDS = 1;
+    /**
+     * Флаг: Секция - заголовки
+     */
+    public const FLAG_TITLES = 2;
+    /**
+     * Флаг: Секция - тексты
+     */
+    public const FLAG_TEXTS = 3;
 
     /**
+     * Маркер секции - ключевые слова
+     */
+    public const MARKER_KEYWORDS = '[Ключи]';
+    /**
+     * Маркер секции - заголовки
+     */
+    public const MARKER_TITLES = '[Заголовки]';
+    /**
+     * Макрер секции - тексты
+     */
+    public const MARKER_TEXTS = '[Тексты]';
+
+    /**
+     * Инстанс файла для парсинга
+     *
      * @var \SplFileObject
      */
     private $file;
-
     /**
+     * Спарсенные ключевые слова
+     *
      * @var string[]
      */
     private $keywords = [];
     /**
+     * Спарсенные заголовки
+     *
      * @var string[]
      */
     private $titles = [];
     /**
+     * Спарсенные тексты
+     *
      * @var string[]
      */
     private $texts = [];
-
     /**
+     * Флаг. Текущая секция
+     *
      * @var int
      */
-    private $flag;
+    private $flagCurrentSection;
 
     /**
-     * @param string $file
-     * @return void
+     * @inheritdoc
      */
-    public function parse(string $file)
+    public function parse(string $file): void
     {
-        $this->setFile($file);
+        $this->createFileInstance($file);
 
         $markers = $this->getMarkers();
         $flags = $this->getFlags();
@@ -71,22 +96,22 @@ class DgParser implements Parser
                 continue;
             }
 
-            $key = array_search($text, $markers);
+            $key = array_search($text, $markers, true);
             if ($key !== false) {
-                $this->flag = $flags[$key];
+                $this->flagCurrentSection = $flags[$key];
                 continue;
             }
 
-            if (!$this->flag) {
+            if (!$this->flagCurrentSection) {
                 continue;
             }
 
-            $this->addText($text, $this->flag);
+            $this->addText($text, $this->flagCurrentSection);
         }
     }
 
     /**
-     * @return string[]
+     * @inheritdoc
      */
     public function getKeywords(): array
     {
@@ -94,7 +119,7 @@ class DgParser implements Parser
     }
 
     /**
-     * @return string[]
+     * @inheritdoc
      */
     public function getTitles(): array
     {
@@ -102,7 +127,7 @@ class DgParser implements Parser
     }
 
     /**
-     * @return string[]
+     * @inheritdoc
      */
     public function getTexts(): array
     {
@@ -110,6 +135,8 @@ class DgParser implements Parser
     }
 
     /**
+     * Массив маркеров для поиска
+     *
      * @return array
      */
     private function getMarkers(): array
@@ -118,6 +145,8 @@ class DgParser implements Parser
     }
 
     /**
+     * Массив флагов для поиска
+     *
      * @return array
      */
     private function getFlags(): array
@@ -126,10 +155,12 @@ class DgParser implements Parser
     }
 
     /**
-     * @param string $text
-     * @param int $flag
+     * Добавить найденные текст в набор в зависимости от флага
+     *
+     * @param string $text спарсенный текст
+     * @param int $flag флаг типа текста
      */
-    private function addText(string $text, int $flag)
+    private function addText(string $text, int $flag): void
     {
         if ($flag === self::FLAG_KEYWORDS) {
             $this->keywords[] = $text;
@@ -141,9 +172,11 @@ class DgParser implements Parser
     }
 
     /**
+     * Создание инстанса файла из его пути
+     *
      * @param string $file
      */
-    private function setFile(string $file): void
+    private function createFileInstance(string $file): void
     {
         $this->file = new SplFileObject($file);
     }

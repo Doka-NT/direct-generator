@@ -5,9 +5,9 @@ namespace tests\skobka\dg;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use skobka\dg\AdGenerator;
-use skobka\dg\DgParser;
+use skobka\dg\DgParserInterface;
 use skobka\dg\Exceptions\GenerateException;
-use skobka\dg\Parser;
+use skobka\dg\ParserInterface;
 use skobka\dg\View;
 
 /**
@@ -31,9 +31,9 @@ class AdGeneratorTest extends TestCase
                 $this->createRow('baz 1', 'baz', 'baz title', 'baz text'),
             ], \PHP_EOL) . \PHP_EOL;
 
-        /* @var $parser DgParser|\PHPUnit_Framework_MockObject_MockObject */
+        /* @var $parser DgParserInterface|\PHPUnit_Framework_MockObject_MockObject */
         $parser = $this
-            ->getMockBuilder(DgParser::class)
+            ->getMockBuilder(DgParserInterface::class)
             ->disableOriginalConstructor()
             ->setMethods([
                 'parse',
@@ -100,7 +100,7 @@ class AdGeneratorTest extends TestCase
         $exception = new GenerateException($message);
         $count = \mb_strlen($message);
 
-        $parser = new DgParser();
+        $parser = new DgParserInterface();
         $view = new View();
         $generator = new AdGenerator($parser, $view, 'foo');
 
@@ -122,9 +122,9 @@ class AdGeneratorTest extends TestCase
      */
     public function testNoOutputOnError()
     {
-        /* @var $parser Parser|\PHPUnit_Framework_MockObject_MockObject */
+        /* @var $parser ParserInterface|\PHPUnit_Framework_MockObject_MockObject */
         $parser = $this
-            ->getMockBuilder(Parser::class)
+            ->getMockBuilder(ParserInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 

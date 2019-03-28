@@ -10,10 +10,18 @@ use Symfony\Component\Console\Application;
  */
 class AppFactory
 {
+    /**
+     * Имя приложения. Отображается при выводе справочной информации
+     */
     public const APP_NAME = 'direct-generator';
+    /**
+     * Версия приложения. Используется при запросе версии параметром --version
+     */
     public const APP_VERSION = '1.0.0';
 
     /**
+     * Создание инстанса приложения
+     *
      * @return Application
      */
     public static function create(): Application

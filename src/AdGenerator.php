@@ -4,25 +4,38 @@ namespace skobka\dg;
 
 use skobka\dg\Exceptions\GenerateException;
 
+/**
+ * Сервис генерации объявлений
+ */
 class AdGenerator
 {
     /**
-     * @var Parser
+     * Сервис парсинга входных данных
+     *
+     * @var ParserInterface
      */
     private $parser;
     /**
+     * Сервис формирования выходных данных
+     *
      * @var View
      */
     private $view;
     /**
+     * Инстанс буфера вывода
+     *
      * @var \SplFileObject
      */
     private $output;
     /**
+     * Текстовое представление буффера вывода
+     *
      * @var string
      */
     private $outputBuffer = '';
     /**
+     * Флаг: наличие ошибки при работе сервиса
+     *
      * @var bool
      */
     private $wasError = false;
@@ -30,11 +43,11 @@ class AdGenerator
     /**
      * Генератор объявлений
      *
-     * @param Parser $parser
-     * @param View $view
-     * @param string $output
+     * @param ParserInterface $parser Сервис парсинга входных данных
+     * @param View $view Сервис формирования выходных данных
+     * @param string $output буффер, куда поместить результат
      */
-    public function __construct(Parser $parser, View $view, string $output)
+    public function __construct(ParserInterface $parser, View $view, string $output)
     {
         $this->parser = $parser;
         $this->view = $view;
@@ -42,7 +55,7 @@ class AdGenerator
     }
 
     /**
-     * Генерирует наборы объявлений
+     * Запуск генерации объявлений
      *
      * @param string $file
      */
@@ -51,7 +64,7 @@ class AdGenerator
         $this->parser->parse($file);
 
         foreach ($this->parser->getKeywords() as $keyword) {
-            $this->processTitles($keyword);
+            $this->processTitlesAndTexts($keyword);
         }
 
         if ($this->wasError) {
@@ -64,10 +77,11 @@ class AdGenerator
     /**
      * Формирование строки с ошибкой
      *
-     * @param GenerateException $exception
+     * @param GenerateException $exception Исключение для преобрзования в ошибку
+     *
      * @return string
      */
-    private function renderException(GenerateException $exception)
+    private function renderException(GenerateException $exception): string
     {
         $this->wasError = true;
 
@@ -81,25 +95,29 @@ class AdGenerator
     }
 
     /**
-     * @param string $string
+     * Вывести строку в буффер вывода
+     *
+     * @param string $string Строка для вывода
      */
-    private function writeToOutput(string $string)
+    private function writeToOutput(string $string): void
     {
         $this->outputBuffer .= $string;
     }
 
     /**
-     * Вывод буффера в output
+     * Вывести буффер в поток output, указанный в конструкторе класса
      */
-    private function flushOutput()
+    private function flushOutput(): void
     {
         $this->output->fwrite($this->outputBuffer);
     }
 
     /**
-     * @param string $keyword
+     * Запустить генерацию заголовков и текстов объявлений
+     *
+     * @param string $keyword Ключевое слово для генерации заголовка
      */
-    private function processTitles(string $keyword)
+    private function processTitlesAndTexts(string $keyword): void
     {
         foreach ($this->parser->getTitles() as $title) {
             $this->processTexts($keyword, $title);
@@ -107,10 +125,13 @@ class AdGenerator
     }
 
     /**
-     * @param string $keyword
-     * @param string $title
+     * Запустить генерацию текстов объявлений
+     * При генерации тексты объявлений сразу выводятся в output указанный в конструкторе
+     *
+     * @param string $keyword ключевое слово
+     * @param string $title заголовок
      */
-    private function processTexts(string $keyword, string $title)
+    private function processTexts(string $keyword, string $title): void
     {
         foreach ($this->parser->getTexts() as $text) {
             try {

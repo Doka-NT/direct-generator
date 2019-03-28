@@ -43,6 +43,7 @@ before_script:
 
 # Testing the app (see phpunit.xml), generating Code Coverage report
 script:
+  - ./vendor/bin/phpcs src/ --standard=psr2
   - ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
 
 
