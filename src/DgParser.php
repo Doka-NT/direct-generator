@@ -168,7 +168,9 @@ class DgParser implements ParserInterface
     }
 
     /**
-     * @param string $text
+     * Парсинг строки из исходного файла
+     *
+     * @param string $text строка текста из исходного файла
      */
     private function parseLine(string $text): void
     {
@@ -180,12 +182,15 @@ class DgParser implements ParserInterface
     }
 
     /**
-     * @param string $text
+     * Проверка является ли $line ключевым словом определяющим секцию файлы
+     *
+     * @param string $line строка текста из исходного файла
+     *
      * @return bool
      */
-    private function checkIsSection(string $text): bool
+    private function checkIsSection(string $line): bool
     {
-        $key = array_search($text, static::MARKERS, true);
+        $key = array_search($line, static::MARKERS, true);
 
         if ($key === false) {
             return false;
