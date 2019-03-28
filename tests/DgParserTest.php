@@ -3,16 +3,16 @@
 namespace tests\skobka\dg;
 
 use PHPUnit\Framework\TestCase;
-use skobka\dg\DgParserInterface;
+use skobka\dg\DgParser;
 
 /**
- * @coversDefaultClass \skobka\dg\DgParserInterface
+ * @coversDefaultClass \skobka\dg\DgParser
  */
 class DgParserTest extends TestCase
 {
     public function testGetTitles(): void
     {
-        $parser = new DgParserInterface();
+        $parser = new DgParser();
         $parser->parse($this->getFile());
 
         $this->assertSame([
@@ -23,7 +23,7 @@ class DgParserTest extends TestCase
 
     public function testGetTexts(): void
     {
-        $parser = new DgParserInterface();
+        $parser = new DgParser();
         $parser->parse($this->getFile());
 
         $this->assertSame([
@@ -34,7 +34,7 @@ class DgParserTest extends TestCase
 
     public function testGetKeywords(): void
     {
-        $parser = new DgParserInterface();
+        $parser = new DgParser();
         $parser->parse($this->getFile());
 
         $this->assertSame([

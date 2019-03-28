@@ -3,7 +3,7 @@
 namespace skobka\dg\Command;
 
 use skobka\dg\AdGenerator;
-use skobka\dg\DgParserInterface;
+use skobka\dg\DgParser;
 use skobka\dg\View;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -69,7 +69,7 @@ class GenerateCommand extends Command
             $outputFile = \dirname($inputFile) . '/' . \basename($inputFile) . '.csv';
         }
 
-        $parser = new DgParserInterface();
+        $parser = new DgParser();
         $view = new View();
         $generator = new AdGenerator($parser, $view, $outputFile);
 

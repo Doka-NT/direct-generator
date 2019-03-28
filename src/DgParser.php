@@ -20,7 +20,7 @@ use SplFileObject;
  * Формат аналогичен секции Заголовков
  * </code>
  */
-class DgParserInterface implements ParserInterface
+class DgParser implements ParserInterface
 {
     /**
      * Флаг: Секция - ключевые слова
@@ -47,6 +47,17 @@ class DgParserInterface implements ParserInterface
      * Макрер секции - тексты
      */
     public const MARKER_TEXTS = '[Тексты]';
+
+    /**
+     * Массив флагов для поиска
+     *
+     * @var int[]
+     */
+    private const FLAGS = [self::FLAG_KEYWORDS, self::FLAG_TITLES, self::FLAG_TEXTS];
+    /**
+     * Массив маркеров для поиска
+     */
+    private const MARKERS = [self::MARKER_KEYWORDS, self::MARKER_TITLES, self::MARKER_TEXTS];
 
     /**
      * Инстанс файла для парсинга
@@ -77,7 +88,7 @@ class DgParserInterface implements ParserInterface
      *
      * @var int
      */
-    private $flagCurrentSection;
+    private $flagCurrentSection = 0;
 
     /**
      * @inheritdoc
@@ -86,28 +97,13 @@ class DgParserInterface implements ParserInterface
     {
         $this->createFileInstance($file);
 
-        $markers = $this->getMarkers();
-        $flags = $this->getFlags();
-
         while (!$this->file->eof()) {
-            $line = $this->file->fgets();
-            $text = trim($line);
-            if (!$text) {
-                continue;
-            }
-
-            $key = array_search($text, $markers, true);
-            if ($key !== false) {
-                $this->flagCurrentSection = $flags[$key];
-                continue;
-            }
-
-            if (!$this->flagCurrentSection) {
-                continue;
-            }
-
-            $this->addText($text, $this->flagCurrentSection);
+            $this->parseLine(
+                trim($this->file->fgets())
+            );
         }
+
+        $this->filterData();
     }
 
     /**
@@ -135,26 +131,6 @@ class DgParserInterface implements ParserInterface
     }
 
     /**
-     * Массив маркеров для поиска
-     *
-     * @return array
-     */
-    private function getMarkers(): array
-    {
-        return [self::MARKER_KEYWORDS, self::MARKER_TITLES, self::MARKER_TEXTS];
-    }
-
-    /**
-     * Массив флагов для поиска
-     *
-     * @return array
-     */
-    private function getFlags(): array
-    {
-        return [self::FLAG_KEYWORDS, self::FLAG_TITLES, self::FLAG_TEXTS];
-    }
-
-    /**
      * Добавить найденные текст в набор в зависимости от флага
      *
      * @param string $text спарсенный текст
@@ -162,11 +138,11 @@ class DgParserInterface implements ParserInterface
      */
     private function addText(string $text, int $flag): void
     {
-        if ($flag === self::FLAG_KEYWORDS) {
+        if ($flag === static::FLAG_KEYWORDS) {
             $this->keywords[] = $text;
-        } elseif ($flag === self::FLAG_TITLES) {
+        } elseif ($flag === static::FLAG_TITLES) {
             $this->titles[] = $text;
-        } elseif ($flag === self::FLAG_TEXTS) {
+        } elseif ($flag === static::FLAG_TEXTS) {
             $this->texts[] = $text;
         }
     }
@@ -179,5 +155,44 @@ class DgParserInterface implements ParserInterface
     private function createFileInstance(string $file): void
     {
         $this->file = new SplFileObject($file);
+    }
+
+    /**
+     * Очистка спарсенных данных от пустых значений
+     */
+    private function filterData(): void
+    {
+        $this->keywords = array_filter($this->keywords);
+        $this->titles = array_filter($this->titles);
+        $this->texts = array_filter($this->texts);
+    }
+
+    /**
+     * @param string $text
+     */
+    private function parseLine(string $text): void
+    {
+        if ($this->checkIsSection($text)) {
+            return;
+        }
+
+        $this->addText($text, $this->flagCurrentSection);
+    }
+
+    /**
+     * @param string $text
+     * @return bool
+     */
+    private function checkIsSection(string $text): bool
+    {
+        $key = array_search($text, static::MARKERS, true);
+
+        if ($key === false) {
+            return false;
+        }
+
+        $this->flagCurrentSection = static::FLAGS[$key] ?? 0;
+
+        return true;
     }
 }
