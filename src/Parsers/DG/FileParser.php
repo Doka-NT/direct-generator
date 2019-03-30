@@ -1,7 +1,9 @@
 <?php
 
-namespace skobka\dg;
+namespace skobka\dg\Parsers\DG;
 
+use skobka\dg\ParserInterface;
+use skobka\dg\Structures\Link;
 use SplFileObject;
 
 /**
@@ -20,7 +22,7 @@ use SplFileObject;
  * Формат аналогичен секции Заголовков
  * </code>
  */
-class DgParser implements ParserInterface
+class FileParser implements ParserInterface
 {
     /**
      * Флаг: Секция - ключевые слова
@@ -34,35 +36,43 @@ class DgParser implements ParserInterface
      * Флаг: Секция - тексты
      */
     public const FLAG_TEXTS = 3;
+    /**
+     * Флаг: Секция - быстрые ссылки
+     */
+    public const FLAG_QUICK_LINKS = 4;
 
     /**
      * Маркер секции - ключевые слова
      */
-    public const MARKER_KEYWORDS = '[Ключи]';
+    private const MARKER_KEYWORDS = '[Ключи]';
     /**
      * Маркер секции - заголовки
      */
-    public const MARKER_TITLES = '[Заголовки]';
+    private const MARKER_TITLES = '[Заголовки]';
     /**
      * Макрер секции - тексты
      */
-    public const MARKER_TEXTS = '[Тексты]';
+    private const MARKER_TEXTS = '[Тексты]';
+    /**
+     * Маркер секции - быстрые ссылки
+     */
+    private const MARKER_QUICK_LINKS = '[Быстрые ссылки]';
 
     /**
      * Массив флагов для поиска
      *
      * @var int[]
      */
-    private const FLAGS = [self::FLAG_KEYWORDS, self::FLAG_TITLES, self::FLAG_TEXTS];
+    private const FLAGS = [self::FLAG_KEYWORDS, self::FLAG_TITLES, self::FLAG_TEXTS, self::FLAG_QUICK_LINKS];
     /**
      * Массив маркеров для поиска
      */
-    private const MARKERS = [self::MARKER_KEYWORDS, self::MARKER_TITLES, self::MARKER_TEXTS];
+    private const MARKERS = [self::MARKER_KEYWORDS, self::MARKER_TITLES, self::MARKER_TEXTS, self::MARKER_QUICK_LINKS];
 
     /**
      * Инстанс файла для парсинга
      *
-     * @var \SplFileObject
+     * @var SplFileObject
      */
     private $file;
     /**
@@ -89,13 +99,19 @@ class DgParser implements ParserInterface
      * @var int
      */
     private $flagCurrentSection = 0;
+    /**
+     * Массив быстрых ссылок
+     *
+     * @var Link[]
+     */
+    private $quickLinks = [];
 
     /**
      * @inheritdoc
      */
     public function parse(string $file): void
     {
-        $this->createFileInstance($file);
+        $this->file = new SplFileObject($file);
 
         while (!$this->file->eof()) {
             $this->parseLine(
@@ -131,6 +147,14 @@ class DgParser implements ParserInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getQuickLinks(): array
+    {
+        return $this->quickLinks;
+    }
+
+    /**
      * Добавить найденные текст в набор в зависимости от флага
      *
      * @param string $text спарсенный текст
@@ -138,23 +162,20 @@ class DgParser implements ParserInterface
      */
     private function addText(string $text, int $flag): void
     {
-        if ($flag === static::FLAG_KEYWORDS) {
-            $this->keywords[] = $text;
-        } elseif ($flag === static::FLAG_TITLES) {
-            $this->titles[] = $text;
-        } elseif ($flag === static::FLAG_TEXTS) {
-            $this->texts[] = $text;
+        switch ($flag) {
+            case static::FLAG_KEYWORDS:
+                $this->keywords[] = $text;
+                break;
+            case static::FLAG_TITLES:
+                $this->titles[] = $text;
+                break;
+            case static::FLAG_TEXTS:
+                $this->texts[] = $text;
+                break;
+            case static::FLAG_QUICK_LINKS:
+                $this->quickLinks[] = LinkParser::parse($text);
+                break;
         }
-    }
-
-    /**
-     * Создание инстанса файла из его пути
-     *
-     * @param string $file
-     */
-    private function createFileInstance(string $file): void
-    {
-        $this->file = new SplFileObject($file);
     }
 
     /**
@@ -175,6 +196,10 @@ class DgParser implements ParserInterface
     private function parseLine(string $text): void
     {
         if ($this->checkIsSection($text)) {
+            return;
+        }
+
+        if (preg_replace('/\s/', '', $text) === '') {
             return;
         }
 

@@ -2,14 +2,17 @@
 
 namespace skobka\dg\Command;
 
+use Exception;
 use skobka\dg\AdGenerator;
-use skobka\dg\DgParser;
+use skobka\dg\Parsers\DG\FileParser;
 use skobka\dg\View;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use function basename;
+use function dirname;
 
 /**
  * Команда генерации объявлений
@@ -58,7 +61,7 @@ class GenerateCommand extends Command
 
     /**
      * @inheritdoc
-     * @throws \Exception
+     * @throws Exception
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -66,10 +69,10 @@ class GenerateCommand extends Command
         $outputFile = $input->getArgument(self::ARG_OUTPUT);
 
         if (null === $outputFile) {
-            $outputFile = \dirname($inputFile) . '/' . \basename($inputFile) . '.csv';
+            $outputFile = dirname($inputFile) . '/' . basename($inputFile) . '.csv';
         }
 
-        $parser = new DgParser();
+        $parser = new FileParser();
         $view = new View();
         $generator = new AdGenerator($parser, $view, $outputFile);
 

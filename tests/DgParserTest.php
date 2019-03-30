@@ -3,16 +3,20 @@
 namespace tests\skobka\dg;
 
 use PHPUnit\Framework\TestCase;
-use skobka\dg\DgParser;
+use skobka\dg\Parsers\DG\FileParser;
+use skobka\dg\Structures\Link;
+use function file_put_contents;
+use function sys_get_temp_dir;
+use function tempnam;
 
 /**
- * @coversDefaultClass \skobka\dg\DgParser
+ * @coversDefaultClass \skobka\dg\Parsers\DG\FileParser
  */
 class DgParserTest extends TestCase
 {
     public function testGetTitles(): void
     {
-        $parser = new DgParser();
+        $parser = new FileParser();
         $parser->parse($this->getFile());
 
         $this->assertSame([
@@ -23,7 +27,7 @@ class DgParserTest extends TestCase
 
     public function testGetTexts(): void
     {
-        $parser = new DgParser();
+        $parser = new FileParser();
         $parser->parse($this->getFile());
 
         $this->assertSame([
@@ -34,7 +38,7 @@ class DgParserTest extends TestCase
 
     public function testGetKeywords(): void
     {
-        $parser = new DgParser();
+        $parser = new FileParser();
         $parser->parse($this->getFile());
 
         $this->assertSame([
@@ -44,12 +48,26 @@ class DgParserTest extends TestCase
     }
 
     /**
+     * Тест парсинга быстрых ссылок
+     */
+    public function testGetQuickLinks(): void
+    {
+        $parser = new FileParser();
+        $parser->parse($this->getFile());
+
+        $this->assertEquals([
+            new Link('https://example.com', 'Ссылка 1'),
+            new Link('https://foo.example2.com', 'Ссылка 2'),
+        ], $parser->getQuickLinks());
+    }
+
+    /**
      * @return string
      */
     private function getFile(): string
     {
-        $file = \tempnam(\sys_get_temp_dir(), 'dg');
-        \file_put_contents($file, $this->getFileContent());
+        $file = tempnam(sys_get_temp_dir(), 'dg');
+        file_put_contents($file, $this->getFileContent());
 
         return $file;
     }
@@ -61,6 +79,10 @@ class DgParserTest extends TestCase
     {
         return <<<EOT
 not used        
+        
+[Быстрые ссылки]
+Ссылка 1 || https://example.com
+Ссылка 2 || https://foo.example2.com
         
 [Ключи]
 foo

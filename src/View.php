@@ -31,6 +31,10 @@ class View
      * Максимальная длина текста
      */
     private const MAX_TEXT_LENGTH = 75;
+    /**
+     * Максимальна длинна всего текста быстрых ссылок
+     */
+    private const MAX_QUICK_LINKS_LENGTH = 66;
 
     /**
      * Текущий номер группы

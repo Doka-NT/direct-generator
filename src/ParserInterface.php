@@ -2,6 +2,8 @@
 
 namespace skobka\dg;
 
+use skobka\dg\Structures\Link;
+
 /**
  * Интерфейс парсера исходного файла
  */
@@ -36,4 +38,11 @@ interface ParserInterface
      * @return string[]
      */
     public function getTexts(): array;
+
+    /**
+     * Список быстрых ссылок
+     *
+     * @return Link[]
+     */
+    public function getQuickLinks(): array;
 }
