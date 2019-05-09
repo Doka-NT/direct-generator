@@ -3,7 +3,6 @@
 namespace skobka\dg;
 
 use skobka\dg\Exceptions\GenerateException;
-use skobka\dg\Exceptions\TitleTooLongException;
 use skobka\dg\Exceptions\TooLongException;
 use skobka\dg\Structures\Interfaces\LinkInterface;
 
@@ -81,11 +80,11 @@ class View
      *
      * @return string строка для вывода
      *
-     * @throws TooLongException выбрасывается, когда текст превышает MAX_TEXT_LENGTH
-     * @throws TitleTooLongException выбрасывается, когда заголовок превышает MAX_TITLE_LENGTH
+     * @throws TooLongException выбрасывается, когда заголовок, текст, быстрые ссылки и тп превышает допустимую длину
      *
      * @see View::MAX_TITLE_LENGTH
      * @see View::MAX_TEXT_LENGTH
+     * @see View::MAX_QUICK_LINKS_LENGTH
      */
     public function renderString(string $keyword, string $title, string $text, array $quickLinks = []): string
     {
@@ -95,11 +94,11 @@ class View
         $text = $this->replaceKeys($text, $keyword);
 
         if (!$this->skipLong && mb_strlen($title) > self::MAX_TITLE_LENGTH) {
-            throw new TitleTooLongException($title);
+            throw new TooLongException(TooLongException::TYPE_TITLE, $title);
         }
 
         if (!$this->skipLong && mb_strlen($text) > self::MAX_TEXT_LENGTH) {
-            throw new TooLongException($text);
+            throw new TooLongException(TooLongException::TYPE_TEXT, $text);
         }
 
         $preparedQuickLinks = $this->prepareQuickLinks($quickLinks);
@@ -187,7 +186,10 @@ class View
         }
 
         if (mb_strlen(implode('', $parts['texts'])) > self::MAX_QUICK_LINKS_LENGTH) {
-            throw new TooLongException('Длинна быстрых ссылок превышает ' . self::MAX_QUICK_LINKS_LENGTH);
+            throw new TooLongException(
+                TooLongException::TYPE_QUICK_LINKS,
+                'Длинна быстрых ссылок превышает ' . self::MAX_QUICK_LINKS_LENGTH
+            );
         }
 
         return $parts;

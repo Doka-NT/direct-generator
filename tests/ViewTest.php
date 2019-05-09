@@ -5,7 +5,6 @@ namespace tests\skobka\dg;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
 use ReflectionProperty;
-use skobka\dg\Exceptions\TitleTooLongException;
 use skobka\dg\Exceptions\TooLongException;
 use skobka\dg\View;
 use function uniqid;
@@ -81,14 +80,13 @@ class ViewTest extends TestCase
 
     /**
      * @return void
-     * @throws TitleTooLongException
      * @throws TooLongException
      */
     public function testTitleTooLong(): void
     {
         $view = new View();
 
-        $this->expectException(TitleTooLongException::class);
+        $this->expectException(TooLongException::class);
         $this->expectExceptionMessage('[Заголовок]: some very long title with very long text');
         $view->renderString('foo', 'some very long title with very long text', 'bar');
     }
@@ -96,7 +94,6 @@ class ViewTest extends TestCase
     /**
      * @return void
      * @throws TooLongException
-     * @throws TitleTooLongException
      */
     public function testTextTooLong(): void
     {
@@ -116,7 +113,6 @@ class ViewTest extends TestCase
     /**
      * @return void
      * @throws TooLongException
-     * @throws TitleTooLongException
      */
     public function testUpdateAdCounter(): void
     {
