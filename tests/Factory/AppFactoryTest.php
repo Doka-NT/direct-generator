@@ -4,6 +4,7 @@ namespace tests\skobka\dg\Factory;
 
 use PHPUnit\Framework\TestCase;
 use skobka\dg\Factory\AppFactory;
+use function array_keys;
 
 /**
  * @coversDefaultClass \skobka\dg\Factory\AppFactory
@@ -23,6 +24,6 @@ class AppFactoryTest extends TestCase
 
         $commands = $app->all();
         $this->assertCount(3, $commands);
-        $this->assertSame(['help', 'list', 'direct-generator'], \array_keys($commands));
+        $this->assertSame(['help', 'list', 'direct-generator'], array_keys($commands));
     }
 }

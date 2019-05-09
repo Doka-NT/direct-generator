@@ -2,10 +2,19 @@
 
 namespace tests\skobka\dg\Command;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
+use PHPUnit_Framework_MockObject_MockObject;
 use skobka\dg\Command\GenerateCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use function file_get_contents;
+use function file_put_contents;
+use function mb_strlen;
+use function ob_get_clean;
+use function ob_start;
+use function sys_get_temp_dir;
+use function uniqid;
 
 /**
  * @coversDefaultClass \skobka\dg\Command\GenerateCommand
@@ -41,7 +50,7 @@ class GenerateCommandTest extends TestCase
 
     /**
      * @covers ::execute()
-     * @throws \Exception
+     * @throws Exception
      */
     public function testExecuteEmptyOrBadInput(): void
     {
@@ -52,13 +61,13 @@ class GenerateCommandTest extends TestCase
         $exitCode = $command->execute($input, $output);
 
         $this->assertSame(0, $exitCode);
-        $this->assertSame('', \file_get_contents($outputFile));
+        $this->assertSame('', file_get_contents($outputFile));
     }
 
     /**
      * @covers ::execute()
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function testExecuteSimpleOutput(): void
     {
@@ -94,15 +103,29 @@ Title 1 [key]
                 'Title 1 foobar',
                 '',
                 'Foobar text 1',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
             ]) . PHP_EOL,
-            \file_get_contents($outputFile)
+            file_get_contents($outputFile)
         );
     }
 
     /**
      * @covers ::execute()
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function testExecuteCsvOutput(): void
     {
@@ -123,14 +146,14 @@ Title 1 [key]
 
         $this->assertSame(0, $exitCode);
         $this->assertSame(
-            '-,Текстово-графическое,-,,foobar 1,,-,,foobar,,,Title 1 foobar,,Foobar text 1' . PHP_EOL,
-            \file_get_contents($outputFile)
+            '-,Текстово-графическое,-,,foobar 1,,-,,foobar,,,Title 1 foobar,,Foobar text 1,,,,,,,,,,,,,,' . PHP_EOL,
+            file_get_contents($outputFile)
         );
     }
 
     /**
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function testOutputToDefaultFile()
     {
@@ -154,15 +177,15 @@ Title 1 [key]
 
         $this->assertSame(0, $exitCode);
         $this->assertSame(
-            '-,Текстово-графическое,-,,foobar 1,,-,,foobar,,,Title 1 foobar,,Foobar text 1' . PHP_EOL,
-            \file_get_contents($inputFile . '.csv')
+            '-,Текстово-графическое,-,,foobar 1,,-,,foobar,,,Title 1 foobar,,Foobar text 1,,,,,,,,,,,,,,' . PHP_EOL,
+            file_get_contents($inputFile . '.csv')
         );
     }
 
     /**
      * @covers ::execute()
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function testExecuteWithLongTitle(): void
     {
@@ -176,15 +199,15 @@ Title 1 [key]
 [Тексты]
 [Key] text 1
 ';
-        $length = \mb_strlen('Title 1 foobarbaz_and_very_very_long_title_to_throw_exception');
+        $length = mb_strlen('Title 1 foobarbaz_and_very_very_long_title_to_throw_exception');
 
         [, $input, $output] = $this->getMocks($content, 'csv', false);
 
         $command = new GenerateCommand();
 
-        \ob_start();
+        ob_start();
         $command->execute($input, $output);
-        $out = \ob_get_clean();
+        $out = ob_get_clean();
 
         $this->assertContains(
             "[ERROR] [Заголовок]: Title 1 foobarbaz_and_very_very_long_title_to_throw_exception [$length]",
@@ -199,8 +222,8 @@ Title 1 [key]
      */
     private function createTempFile($content, string $extension = '')
     {
-        $name = \sys_get_temp_dir() . '/' . \uniqid('dg-', false) . ($extension ? '.' . $extension : '');
-        \file_put_contents($name, $content);
+        $name = sys_get_temp_dir() . '/' . uniqid('dg-', false) . ($extension ? '.' . $extension : '');
+        file_put_contents($name, $content);
 
         return $name;
     }
@@ -209,11 +232,11 @@ Title 1 [key]
      * @param string $inputFile
      * @param string $outputFile
      * @param bool $skip
-     * @return \PHPUnit_Framework_MockObject_MockObject|InputInterface
+     * @return PHPUnit_Framework_MockObject_MockObject|InputInterface
      */
     private function getInputMock(string $inputFile, $outputFile, bool $skip)
     {
-        /* @var $input InputInterface|\PHPUnit_Framework_MockObject_MockObject */
+        /* @var $input InputInterface|PHPUnit_Framework_MockObject_MockObject */
         $input = $this
             ->getMockBuilder(InputInterface::class)
             ->disableOriginalConstructor()
@@ -233,11 +256,11 @@ Title 1 [key]
     }
 
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject|OutputInterface
+     * @return PHPUnit_Framework_MockObject_MockObject|OutputInterface
      */
     private function getOutputMock()
     {
-        /* @var $output OutputInterface|\PHPUnit_Framework_MockObject_MockObject */
+        /* @var $output OutputInterface|PHPUnit_Framework_MockObject_MockObject */
         $output = $this
             ->getMockBuilder(OutputInterface::class)
             ->disableOriginalConstructor()

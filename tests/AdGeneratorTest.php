@@ -7,10 +7,12 @@ use PHPUnit_Framework_MockObject_MockObject;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionProperty;
+use RuntimeException;
 use skobka\dg\AdGenerator;
 use skobka\dg\Exceptions\GenerateException;
 use skobka\dg\ParserInterface;
 use skobka\dg\Parsers\DG\FileParser;
+use skobka\dg\Structures\Link;
 use skobka\dg\View;
 use function file_get_contents;
 use function mb_strlen;
@@ -29,8 +31,10 @@ class AdGeneratorTest extends TestCase
     /**
      * @return void
      */
-    public function testGenerate()
+    public function testGenerate(): void
     {
+        $inputFileName = $this->createTempFile('foo-input');
+
         $expected = implode([
                 $this->createRow('bar 1', 'bar', 'title bar', 'text bar'),
                 $this->createRow('bar 1', 'bar', 'title bar', 'bar text'),
@@ -44,28 +48,25 @@ class AdGeneratorTest extends TestCase
 
         /* @var $parser FileParser|PHPUnit_Framework_MockObject_MockObject */
         $parser = $this
-            ->getMockBuilder(FileParser::class)
+            ->getMockBuilder(ParserInterface::class)
             ->disableOriginalConstructor()
-            ->setMethods([
-                'parse',
-                'getKeywords',
-                'getTitles',
-                'getTexts',
-            ])
             ->getMock();
 
         $view = new View();
 
-        $parser->expects($this->once())->method('parse')->with('foo');
+        $parser->expects($this->once())->method('parse')->with($inputFileName);
         $parser->method('getKeywords')->willReturn(['bar', 'baz']);
         $parser->method('getTitles')->willReturn(['title [key]', '[key] title']);
         $parser->method('getTexts')->willReturn(['text [key]', '[key] text']);
+        $parser->method('getQuickLinks')->willReturn([
+            new Link('http://foo.example.com', 'Foo'),
+            new Link('http://bar.example.com', 'Bar'),
+        ]);
 
-        $output = tempnam(sys_get_temp_dir(), 'ad-generator');
+        $output = $this->createTempFile('ad-generator');
 
         $generator = new AdGenerator($parser, $view, $output);
-
-        $generator->generate('foo');
+        $generator->generate($inputFileName);
 
         $this->assertSame($expected, file_get_contents($output));
     }
@@ -98,6 +99,20 @@ class AdGeneratorTest extends TestCase
             $title,
             '',
             $text,
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            'Foo||Bar',
+            '',
+            'http://foo.example.com||http://bar.example.com',
         ]);
     }
 
@@ -105,7 +120,7 @@ class AdGeneratorTest extends TestCase
      * @return void
      * @throws ReflectionException
      */
-    public function testRenderException()
+    public function testRenderException(): void
     {
         $message = uniqid('foo', false);
         $exception = new GenerateException($message);
@@ -131,7 +146,7 @@ class AdGeneratorTest extends TestCase
     /**
      * @return void
      */
-    public function testNoOutputOnError()
+    public function testNoOutputOnError(): void
     {
         /* @var $parser ParserInterface|PHPUnit_Framework_MockObject_MockObject */
         $parser = $this
@@ -158,5 +173,20 @@ class AdGeneratorTest extends TestCase
         ob_get_clean();
 
         $this->assertSame('', file_get_contents($output));
+    }
+
+    /**
+     * @param string $prefix
+     * @return string
+     */
+    private function createTempFile(string $prefix): string
+    {
+        $file = tempnam(sys_get_temp_dir(), $prefix);
+
+        if (false === $file) {
+            throw new RuntimeException('Не удается создать временный файл');
+        }
+
+        return (string)$file;
     }
 }

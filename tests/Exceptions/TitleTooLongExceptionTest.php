@@ -13,7 +13,7 @@ class TitleTooLongExceptionTest extends TestCase
     /**
      * @return void
      */
-    public function testException()
+    public function testException(): void
     {
         $exception = new TitleTooLongException('foo bar');
 

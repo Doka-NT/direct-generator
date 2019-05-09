@@ -7,7 +7,7 @@ use Throwable;
 /**
  * Исключение: Текст слишком длинный
  */
-class TextTooLongException extends GenerateException
+class TooLongException extends GenerateException
 {
     /**
      * @inheritdoc

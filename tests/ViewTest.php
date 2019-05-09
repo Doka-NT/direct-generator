@@ -3,10 +3,12 @@
 namespace tests\skobka\dg;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 use ReflectionProperty;
-use skobka\dg\Exceptions\TextTooLongException;
 use skobka\dg\Exceptions\TitleTooLongException;
+use skobka\dg\Exceptions\TooLongException;
 use skobka\dg\View;
+use function uniqid;
 
 /**
  * @coversDefaultClass \skobka\dg\View
@@ -28,9 +30,9 @@ class ViewTest extends TestCase
      * @dataProvider boolDataProvider
      * @param bool $skipLong
      * @return void
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function testSkipLong(bool $skipLong)
+    public function testSkipLong(bool $skipLong): void
     {
         $view = new View();
         $view->setSkipLong($skipLong);
@@ -44,11 +46,11 @@ class ViewTest extends TestCase
 
     /**
      * @return void
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function testSetCellDelimiter()
+    public function testSetCellDelimiter(): void
     {
-        $value = \uniqid('foo', false);
+        $value = uniqid('foo', false);
 
         $view = new View();
 
@@ -62,11 +64,11 @@ class ViewTest extends TestCase
 
     /**
      * @return void
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function testSetRowDelimiter()
+    public function testSetRowDelimiter(): void
     {
-        $value = \uniqid('foo', false);
+        $value = uniqid('foo', false);
         $view = new View();
 
         $view->setRowDelimiter($value);
@@ -80,9 +82,9 @@ class ViewTest extends TestCase
     /**
      * @return void
      * @throws TitleTooLongException
-     * @throws TextTooLongException
+     * @throws TooLongException
      */
-    public function testTitleTooLong()
+    public function testTitleTooLong(): void
     {
         $view = new View();
 
@@ -93,14 +95,14 @@ class ViewTest extends TestCase
 
     /**
      * @return void
-     * @throws TextTooLongException
+     * @throws TooLongException
      * @throws TitleTooLongException
      */
-    public function testTextTooLong()
+    public function testTextTooLong(): void
     {
         $view = new View();
 
-        $this->expectException(TextTooLongException::class);
+        $this->expectException(TooLongException::class);
         $this->expectExceptionMessage(
             '[Текст]: some very very long text with very long sentense, containing a lot of letters'
         );
@@ -113,10 +115,10 @@ class ViewTest extends TestCase
 
     /**
      * @return void
-     * @throws TextTooLongException
+     * @throws TooLongException
      * @throws TitleTooLongException
      */
-    public function testUpdateAdCounter()
+    public function testUpdateAdCounter(): void
     {
         $view = new View();
         $lastString = '';

@@ -3,6 +3,8 @@
 namespace skobka\dg;
 
 use skobka\dg\Exceptions\GenerateException;
+use skobka\dg\Structures\Interfaces\LinkInterface;
+use SplFileObject;
 
 /**
  * Сервис генерации объявлений
@@ -24,7 +26,7 @@ class AdGenerator
     /**
      * Инстанс буфера вывода
      *
-     * @var \SplFileObject
+     * @var SplFileObject
      */
     private $output;
     /**
@@ -39,6 +41,12 @@ class AdGenerator
      * @var bool
      */
     private $wasError = false;
+    /**
+     * Быстрые ссылки
+     *
+     * @var LinkInterface[]
+     */
+    private $quickLinks = [];
 
     /**
      * Генератор объявлений
@@ -51,7 +59,7 @@ class AdGenerator
     {
         $this->parser = $parser;
         $this->view = $view;
-        $this->output = new \SplFileObject($output, 'w');
+        $this->output = new SplFileObject($output, 'w');
     }
 
     /**
@@ -62,6 +70,7 @@ class AdGenerator
     public function generate(string $file): void
     {
         $this->parser->parse($file);
+        $this->quickLinks = $this->parser->getQuickLinks();
 
         foreach ($this->parser->getKeywords() as $keyword) {
             $this->processTitlesAndTexts($keyword);
@@ -135,7 +144,7 @@ class AdGenerator
     {
         foreach ($this->parser->getTexts() as $text) {
             try {
-                $this->writeToOutput($this->view->renderString($keyword, $title, $text));
+                $this->writeToOutput($this->view->renderString($keyword, $title, $text, $this->quickLinks));
             } catch (GenerateException $e) {
                 echo $this->renderException($e);
             }
